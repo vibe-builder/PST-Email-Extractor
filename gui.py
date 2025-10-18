@@ -129,12 +129,6 @@ class PSTExtractorGUI(QMainWindow):
         header.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(header)
 
-        subtitle = QLabel("Convert Outlook PST mailboxes into clean JSON or CSV in minutes.")
-        subtitle.setObjectName("Subtitle")
-        subtitle.setFont(QFont("Segoe UI", 12))
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(subtitle)
-
         card = QFrame()
         card.setObjectName("Card")
         card_layout = QVBoxLayout(card)
@@ -215,7 +209,7 @@ class PSTExtractorGUI(QMainWindow):
 
         layout.addStretch(1)
 
-        self.statusBar().showMessage(f"Ready — logs: {self.log_path}")
+        self.statusBar().showMessage(f"Ready - logs: {self.log_path}")
         status_link = QLabel(f"<a href=\"{self.log_path.as_uri()}\">Open log file</a>")
         status_link.setTextFormat(Qt.TextFormat.RichText)
         status_link.setOpenExternalLinks(True)
@@ -438,7 +432,7 @@ class PSTExtractorGUI(QMainWindow):
             f"Saved files:\n{files_list or 'No outputs generated'}"
         )
         QMessageBox.information(self, "Success", success_msg)
-        self.statusBar().showMessage(f"Completed — exported {email_count} emails")
+        self.statusBar().showMessage(f"Completed - exported {email_count} emails")
 
         # open output folder
         try:
@@ -457,7 +451,7 @@ class PSTExtractorGUI(QMainWindow):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("%p%")
         self.progress_label.setText("Ready to extract emails")
-        self.statusBar().showMessage(f"Ready — logs: {self.log_path}")
+        self.statusBar().showMessage(f"Ready - logs: {self.log_path}")
         self.extraction_thread = None
 
     def closeEvent(self, event):
@@ -477,7 +471,8 @@ class PSTExtractorGUI(QMainWindow):
 
 
 if __name__ == "__main__":
-    QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
+    if hasattr(Qt.ApplicationAttribute, "AA_EnableHighDpiScaling"):
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
     app = QApplication(sys.argv)
     window = PSTExtractorGUI()
     window.show()
