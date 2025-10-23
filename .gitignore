@@ -65,3 +65,6 @@ dist/
 # Temporary files
 *.tmp
 *.temp
+
+# Test files (keep tests local)
+tests/

@@ -1,0 +1,164 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pst-email-extractor"
+version = "1.0.0"
+description = "Extract email content from Outlook PST archives with CLI and GUI workflows."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "PST Email Extractor Contributors", email = "engineering@example.com" },
+]
+keywords = ["pst", "email", "forensics", "outlook", "export"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Email",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "beautifulsoup4>=4.12,<5",
+    "striprtf>=0.0.26,<0.1",
+    # "libpff-python-ratom==20220304",  # Commented out due to Python 3.12 compatibility issues
+    "typer>=0.12,<0.13",
+    "polars>=1.0.0,<2", # Memory-efficient DataFrame library replacing pandas for large datasets
+    "customtkinter>=5.2.0,<6",  # Modern GUI framework based on Tkinter
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "pytest-mock>=3.14",
+    "ruff>=0.14.0,<0.15",  # Updated to 0.14.0 for 3x faster linting
+    "mypy>=1.18.0,<1.19",  # Updated to 1.18.0 for better type inference
+    "types-beautifulsoup4>=4.12.0.20241020",
+    "types-setuptools>=75.5.0.20241126",
+]
+build = [
+    "pyinstaller>=6.11",
+]
+ai = [
+    "symspellpy>=6.7.7",
+    "language-tool-python>=2.7.0",
+    "onnxruntime>=1.19.0",
+    "transformers>=4.44.0",
+]
+perf = [
+    "psutil>=6.0.0",  # Memory monitoring and dynamic batch sizing
+]
+attachments = [
+    "python-magic>=0.4.27",  # MIME type detection
+    "PyMuPDF>=1.23.0",  # PDF text extraction
+    "pytesseract>=0.3.10",  # OCR for images
+    "mammoth>=1.6.0",  # DOCX text extraction
+    "chardet>=5.2.0",  # Character encoding detection
+    "Pillow>=10.0.0",  # Image processing for OCR
+]
+
+[project.scripts]
+pst-email-extractor = "pst_email_extractor.cli.app:app"
+pst-email-extractor-gui = "pst_email_extractor.gui:launch_gui"
+pst-email-extractor-launcher = "launch:main"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "--strict-markers",
+    "--disable-warnings",
+    "-p no:pytest_dash",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow",
+    "requires_pst: requires PST fixture",
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "pst_email_extractor",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src"]
+exclude = ["pst_tools"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "ARG",
+    "SIM",
+    "TID",
+]
+ignore = [
+    "E501",
+    "B008",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = "pypff.*"
+ignore_missing_imports = true
+
+
+[[tool.mypy.overrides]]
+module = "pst_tools.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "polars.*"
+ignore_missing_imports = true
+
+[tool.pyinstaller]
+# Bundle AI resources for offline functionality
+datas = [
+    "src/pst_email_extractor/ai/data/frequency_dictionary_en_82_765.txt;ai/data/",
+    "src/pst_email_extractor/ai/lib/languagetool.jar;ai/lib/",
+    "src/pst_email_extractor/ai/model_dir/*;ai/model_dir/"
+]
+hiddenimports = [
+    "symspellpy",
+    "language_tool_python",
+    "onnxruntime",
+    "transformers",
+    "concurrent.futures"
+]

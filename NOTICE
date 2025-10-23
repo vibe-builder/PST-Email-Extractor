@@ -1,0 +1,12 @@
+PST Email Extractor incorporates third-party components:
+
+- PySide6 (Qt for Python, The Qt Company) - LGPL-3.0-only.
+- Beautiful Soup 4 (Leonard Richardson) - MIT license.
+- striprtf (Martijn Pieters) - BSD-3-Clause license.
+- libpff / pypff bindings (Joachim Metz, libyal) - LGPL-3.0-or-later license.
+- libpff-python-ratom (UNC Libraries) - MIT license (prebuilt libpff bindings).
+- Typer (Sebastian Ramirez) - MIT license.
+- Rich (Textualize) - MIT license.
+
+Users distributing binaries must comply with the respective upstream licenses.
+

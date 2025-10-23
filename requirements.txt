@@ -1,9 +1,0 @@
-# Core dependencies
-unicodecsv>=0.14.1
-PyQt6>=6.8.0
-beautifulsoup4>=4.12.0
-striprtf>=0.0.16
-
-# PST parsing library - requires manual installation
-# pypff is not available via pip and requires system dependencies
-# See README.md for platform-specific installation instructions

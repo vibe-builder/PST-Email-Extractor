@@ -1,42 +1,109 @@
 # PST Email Extractor
 
-This project was developed entirely with AI assistance in Cursor. The goal is a professional, reliable tool for extracting email data from Microsoft Outlook PST files. It pairs a modern desktop interface with a command-line workflow, exports to CSV and JSON via streaming writers (so huge PSTs are safe), and runs on Windows, Linux, or macOS. A standalone Windows executable is available for users who prefer an installer-free experience.
+Extract email content from Outlook PST archives with CLI and GUI workflows.
 
-## Setup and Installation
+## Features
 
-- Requires Python 3.6+ and the dependencies listed in `requirements.txt`, including `pypff` for PST parsing.
-- Install dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
-- Launch the GUI for an intuitive workflow:
-  ```bash
-  python gui.py
-  ```
-  Select a PST file, choose an output folder, pick JSON and/or CSV, then start extraction.
-- Use the CLI for automation (streams emails to disk as they’re parsed):
-  ```bash
-  python main.py -i <pst_file> -o <output_dir> [-j] [-c]
-  ```
-- Let the smart launcher choose automatically:
-  ```bash
-  python launch.py            # GUI when no arguments are given
-  python launch.py -i file.pst  # CLI when arguments are present
-  ```
-- Build a Windows executable that bundles Python and dependencies:
-  ```bash
-  python build_executable.py
-  ```
-- Before running, make sure Outlook is closed and the PST file is accessible to avoid permission issues.
+- **Multiple Export Formats**: JSON, CSV, EML, MBOX
+- **Health Checking**: Pre-flight PST file analysis
+- **Progress Tracking**: Real-time ETA and throughput metrics
+- **Smart Attachment Handling**: Conflict resolution with unique naming
+- **AI Processing**: PII sanitization and text polishing
+- **Batch Processing**: Format-specific optimization with dynamic RAM-based sizing
+- **GUI & CLI**: User-friendly interfaces for all use cases
 
-## Features and Use Cases
+## Installation
 
-- Extracts 17 key fields per email (sender, subject, body, metadata, etc.) with strong error handling and live progress updates.
-- Stream-based exporters write JSON/CSV incrementally, keeping memory usage low even for very large PST archives.
-- Typical processing times:
-  - Small files (<1,000 emails): roughly 1–2 minutes
-  - Medium files (1,000–10,000 emails): about 5–10 minutes
-  - Large files (>10,000 emails): around 10–30 minutes
-- Outputs timestamped, UTF-8 encoded CSV/JSON files suitable for Excel, databases, or scripted analysis.
-- Ideal scenarios include email archiving, migration, e-discovery, compliance reviews, and data analysis.
-- Attachment contents are not extracted (only counts are recorded), and corrupted PST data may result in skipped messages—see troubleshooting guidance for dependency or data issues.
+### Base Installation
+```bash
+pip install -e .
+```
+
+### Optional Feature Sets
+
+Install additional capabilities as needed:
+
+```bash
+# Performance optimizations (dynamic batching, memory monitoring)
+pip install -e ".[perf]"
+
+# Attachment content extraction (PDF, DOCX, OCR)
+pip install -e ".[attachments]"
+
+# AI text processing (PII sanitization, grammar correction)
+pip install -e ".[ai]"
+
+# All features
+pip install -e ".[perf,attachments,ai]"
+```
+
+**Performance Features** (`[perf]`):
+- `psutil` - Dynamic batch sizing based on available RAM
+- Memory monitoring and profiling utilities
+
+**Attachment Features** (`[attachments]`):
+- `python-magic` - Advanced MIME type detection
+- `PyMuPDF` - PDF text extraction
+- `pytesseract` - OCR for images and scanned documents
+- `mammoth` - DOCX text extraction
+- `chardet` - Character encoding detection
+
+**AI Features** (`[ai]`):
+- `symspellpy` - Spell correction
+- `language-tool-python` - Grammar correction
+- `transformers` + `onnxruntime` - Neural text polishing
+
+## Usage
+
+### CLI
+
+**Basic extraction:**
+```bash
+python launch.py extract --pst file.pst --output ./exports --format json csv
+```
+
+**With performance optimizations:**
+```bash
+# Enable compression to save 50-70% disk space
+python launch.py extract --pst file.pst --output ./exports --json --compress
+
+# Extract attachment content with OCR
+python launch.py extract --pst file.pst --output ./exports --json \
+  --extract-attachment-content --enable-ocr
+
+# All features enabled
+python launch.py extract --pst file.pst --output ./exports --json --csv \
+  --compress --extract-attachment-content --ai-sanitize
+```
+
+### GUI
+```bash
+python launch.py gui
+```
+
+### Performance Tuning
+
+For detailed performance optimization guide, see **[PERFORMANCE.md](PERFORMANCE.md)**.
+
+**Quick tips:**
+- Install `psutil` for dynamic batch sizing: `pip install psutil`
+- Use `--compress` flag for 50-70% disk space savings
+- Parallel folder processing automatically enabled for multi-folder PST files
+- Expect 2-5x speedup on 4+ core systems with multiple folders
+
+## Requirements
+
+- Python 3.11-3.12
+- libpff (PST parsing library)
+
+## Progress callbacks
+
+Both callback shapes are supported throughout the pipeline for compatibility:
+- Modern: a single `ProgressUpdate` object (`current`, `total`, `message`).
+- Legacy: positional `(current: int, total: int, message: str)`.
+
+When integrating custom progress reporting, prefer the modern object form; the system adapts to legacy callables where possible.
+
+## License
+
+MIT

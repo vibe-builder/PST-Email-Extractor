@@ -4,8 +4,8 @@ Smart launcher for PST Email Extractor.
 Detects if running in terminal or desktop environment and launches appropriately.
 """
 
-import sys
 import os
+import sys
 
 
 def is_terminal_environment():
@@ -18,36 +18,26 @@ def is_terminal_environment():
     if not sys.stdin.isatty():
         return False
 
-    # check if TERM environment variable exists (usually in terminal)
-    if os.environ.get('TERM'):
-        return True
-
-    # default to GUI for Windows desktop users
-    return False
-
-
-def launch_gui():
-    """Launch GUI application."""
-    try:
-        from gui import PSTExtractorGUI
-        from PyQt6.QtWidgets import QApplication
-
-        app = QApplication(sys.argv)
-        window = PSTExtractorGUI()
-        window.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        print(f"Error launching GUI: {e}")
-        print("\nFalling back to CLI mode...")
-        print("Usage: python main.py -i <pst_file> -o <output_dir> -j -c")
-        sys.exit(1)
+    return bool(os.environ.get("TERM"))
 
 
 def launch_cli():
     """Launch CLI application."""
     try:
-        from main import main as cli_main
-        cli_main()
+        from pst_email_extractor.cli.app import app as cli_app
+
+        cli_app()
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+
+def launch_gui():
+    """Launch GUI application."""
+    try:
+        from pst_email_extractor.gui import launch_gui as gui_launch
+
+        gui_launch()
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -58,14 +48,14 @@ def main():
     # check for help flag
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help']:
         print("""
-PST Email Extractor - Smart Launcher
+PST Email Extractor - Launcher
 
 Usage:
   python launch.py              # Opens GUI
   python launch.py [options]    # CLI mode with options
 
 GUI Mode (no arguments):
-  - Visual interface
+  - Visual interface 
   - Drag-and-drop support
   - Progress indicators
 
@@ -74,24 +64,26 @@ CLI Mode (with arguments):
   -o, --output   Output directory
   -j, --json     Export to JSON
   -c, --csv      Export to CSV
+  --mode         extract (default) or addresses
+  --deduplicate  Skip duplicate messages
+  --extract-attachments  Persist attachments when extracting
 
 Examples:
   python launch.py
   python launch.py -i emails.pst -o output/ -j -c
 
 For detailed help:
-  python main.py --help  (CLI)
-  See README.md (GUI)
+  pst-email-extractor --help
         """)
         return
 
     # decide which mode to launch
-    if is_terminal_environment() and len(sys.argv) > 1:
-        print("Launching CLI mode...")
-        launch_cli()
-    else:
+    if len(sys.argv) == 1:
         print("Launching GUI mode...")
         launch_gui()
+    else:
+        print("Launching CLI mode...")
+        launch_cli()
 
 
 if __name__ == "__main__":
