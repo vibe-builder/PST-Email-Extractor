@@ -141,13 +141,14 @@ class PypffBackend(PstBackend):
         progress_callback,
         max_workers: int,
     ) -> Iterable[dict]:
-        """Process folders in parallel using ThreadPoolExecutor."""
+        """Process folders in parallel using ThreadPoolExecutor with bounded batches."""
         total_processed = 0
-        
-        def process_folder(folder_info: FolderInfo) -> list[dict]:
-            """Worker function to process a single folder."""
-            emails = []
+        BATCH_SIZE = 50  # Process emails in batches to limit memory usage
+
+        def process_folder_batched(folder_info: FolderInfo) -> Iterable[list[dict]]:
+            """Worker function to process a single folder in bounded batches."""
             try:
+                batch = []
                 for email_dict, _ in self.iter_folder_messages(
                     folder_info.path,
                     start=0,
@@ -155,33 +156,55 @@ class PypffBackend(PstBackend):
                     attachment_content_options=options,
                     progress_callback=None  # Avoid callback contention in threads
                 ):
-                    emails.append(email_dict)
+                    batch.append(email_dict)
+                    if len(batch) >= BATCH_SIZE:
+                        yield batch
+                        batch = []
+                # Yield remaining emails in final batch
+                if batch:
+                    yield batch
             except Exception as e:
                 logger.warning(f"Error processing folder {folder_info.path}: {e}")
-            return emails
-        
+                return
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all folders for processing
             future_to_folder = {
-                executor.submit(process_folder, folder): folder
+                executor.submit(process_folder_batched, folder): folder
                 for folder in folders
             }
-            
-            # Yield results as they complete
-            for future in as_completed(future_to_folder):
-                folder = future_to_folder[future]
-                try:
-                    emails = future.result()
-                    for email_dict in emails:
-                        total_processed += 1
-                        if progress_callback and total_processed % 10 == 0:
-                            try:
-                                progress_callback(total_processed, 0, f"Processed {total_processed} emails")
-                            except Exception:
-                                pass
-                        yield email_dict
-                except Exception as e:
-                    logger.error(f"Failed to retrieve results for folder {folder.path}: {e}")
+
+            # Yield results as batches complete, maintaining folder order when possible
+            pending_futures = list(future_to_folder.keys())
+
+            while pending_futures:
+                # Check for completed futures without blocking indefinitely
+                completed = []
+                for future in pending_futures[:]:
+                    if future.done():
+                        completed.append(future)
+                        pending_futures.remove(future)
+
+                # Process completed batches
+                for future in completed:
+                    folder = future_to_folder[future]
+                    try:
+                        for batch in future.result():
+                            for email_dict in batch:
+                                total_processed += 1
+                                if progress_callback and total_processed % 10 == 0:
+                                    try:
+                                        progress_callback(total_processed, 0, f"Processed {total_processed} emails")
+                                    except Exception:
+                                        pass
+                                yield email_dict
+                    except Exception as e:
+                        logger.error(f"Failed to retrieve results for folder {folder.path}: {e}")
+
+                # Small sleep to prevent busy waiting
+                if pending_futures:
+                    import time
+                    time.sleep(0.01)
 
     def analyze_addresses(
         self,

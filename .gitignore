@@ -66,5 +66,5 @@ dist/
 *.tmp
 *.temp
 
-# Test files (keep tests local)
-tests/
+# Test cache (but keep test files)
+.pytest_cache/

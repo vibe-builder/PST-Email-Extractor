@@ -305,8 +305,13 @@ def perform_extraction(
                 buffer.clear()
 
             attachment_content_options = None
-            if config.extract_attachment_content and config.attachment_content_options:
-                attachment_content_options = config.attachment_content_options
+            if config.extract_attachment_content:
+                if config.attachment_content_options:
+                    attachment_content_options = config.attachment_content_options
+                else:
+                    # Create default options when extract_attachment_content=True but no options provided
+                    from .attachment_processor import AttachmentContentOptions
+                    attachment_content_options = AttachmentContentOptions()
 
             for email in backend.iter_messages(
                 deduplicate=config.deduplicate,

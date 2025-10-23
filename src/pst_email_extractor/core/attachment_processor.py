@@ -109,7 +109,6 @@ class AttachmentContentOptions:
     supported_types: set[str] = field(default_factory=lambda: {
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/msword",
         "text/plain",
         "text/csv",
         "text/xml",
@@ -183,7 +182,6 @@ class AttachmentContentExtractor:
         mime_map = {
             'pdf': 'application/pdf',
             'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'doc': 'application/msword',
             'txt': 'text/plain',
             'csv': 'text/csv',
             'xml': 'text/xml',
@@ -205,7 +203,7 @@ class AttachmentContentExtractor:
             return "text"
         elif mime_type.startswith('image/'):
             return "image"
-        elif mime_type in ('application/pdf', 'application/msword',
+        elif mime_type in ('application/pdf',
                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document'):
             return "document"
         elif mime_type in ('application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed'):

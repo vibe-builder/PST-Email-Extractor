@@ -230,23 +230,46 @@ def analyze_addresses_with_polars(
 
     logger.info("Starting Polars-based address analysis")
 
-    address_rows: list[dict[str, Any]] = []
-    host_rows: list[dict[str, Any]] = []
+    CHUNK_SIZE = 5000  # Process emails in chunks to limit memory usage
 
-    # Process records and extract address/host information
+    address_chunks: list[pl.DataFrame] = []
+    host_chunks: list[pl.DataFrame] = []
+
+    current_address_rows: list[dict[str, Any]] = []
+    current_host_rows: list[dict[str, Any]] = []
+
+    # Process records in chunks to limit memory usage
     for email_idx, email in enumerate(email_records):
         if progress_callback and email_idx % 1000 == 0:
             progress_callback(email_idx, 0, "Analyzing addresses")
 
-        address_rows.extend(_extract_address_rows(email))
-        host_rows.extend({"host": host} for host in _extract_host_values(email))
+        current_address_rows.extend(_extract_address_rows(email))
+        current_host_rows.extend({"host": host} for host in _extract_host_values(email))
 
-    if not address_rows and not host_rows:
+        # Process chunk when it reaches the limit
+        if len(current_address_rows) >= CHUNK_SIZE:
+            if current_address_rows:
+                address_chunks.append(pl.DataFrame(current_address_rows))
+            if current_host_rows:
+                host_chunks.append(pl.DataFrame(current_host_rows))
+            current_address_rows = []
+            current_host_rows = []
+
+    # Process remaining rows
+    if current_address_rows:
+        address_chunks.append(pl.DataFrame(current_address_rows))
+    if current_host_rows:
+        host_chunks.append(pl.DataFrame(current_host_rows))
+
+    if not address_chunks and not host_chunks:
         return {"addresses": [], "hosts": []}
 
-    if address_rows:
-        # Create addresses DataFrame
-        addresses_df = pl.DataFrame(address_rows)
+    if address_chunks:
+        # Concatenate all address chunks into a single DataFrame
+        if len(address_chunks) == 1:
+            addresses_df = address_chunks[0]
+        else:
+            addresses_df = pl.concat(address_chunks, how="vertical")
 
         # Group by address and aggregate
         addresses_agg = (
@@ -274,9 +297,12 @@ def analyze_addresses_with_polars(
     else:
         addresses = []
 
-    if host_rows:
-        # Create hosts DataFrame
-        hosts_df = pl.DataFrame(host_rows)
+    if host_chunks:
+        # Concatenate all host chunks into a single DataFrame
+        if len(host_chunks) == 1:
+            hosts_df = host_chunks[0]
+        else:
+            hosts_df = pl.concat(host_chunks, how="vertical")
 
         # Group by host and count
         hosts_agg = (

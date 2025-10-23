@@ -565,9 +565,9 @@ class PSTEmailExtractorGUI:
     def _load_folder_emails(self, folder: PSTFolder):
         """Load emails for the selected folder with paging"""
         try:
-            print(f"Loading emails for folder: {folder.name} (path: {folder.path})")  # Debug
+            logger.debug(f"Loading emails for folder: {folder.name} (path: {folder.path})")
             self.emails = self.extractor.get_emails_from_folder(folder)
-            print(f"Loaded {len(self.emails)} emails")  # Debug
+            logger.debug(f"Loaded {len(self.emails)} emails")
             # Prefer folder-specific count if available
             self.total_email_count = folder.email_count or self.extractor.get_total_email_count()
 
