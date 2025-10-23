@@ -1,0 +1,450 @@
+# Clinical Trial Management Dictionary - Biotech/Pharma/CRO Terms
+# Comprehensive coverage for clinical research professionals
+# Format: word frequency
+# Higher frequency = more common in clinical research contexts
+
+# Core Clinical Trial Terms
+clinical 100000
+trial 95000
+protocol 90000
+amendment 85000
+investigator 80000
+brochure 75000
+informed 70000
+consent 68000
+eligibility 65000
+criteria 63000
+adverse 60000
+event 58000
+serious 55000
+adverse 54000
+reaction 52000
+endpoint 50000
+primary 48000
+secondary 46000
+randomization 44000
+blinding 42000
+placebo 40000
+control 38000
+cohort 36000
+phase 34000
+recruitment 32000
+enrollment 30000
+retention 28000
+followup 26000
+monitoring 24000
+audit 22000
+inspection 20000
+compliance 18000
+deviation 16000
+violation 14000
+corrective 12000
+preventive 11000
+action 10000
+cap 9000
+quality 8500
+assurance 8000
+control 7500
+regulatory 7000
+submission 6500
+approval 6000
+ind 5500
+nda 5000
+regulatory 45000
+agency 42000
+fda 40000
+ema 38000
+ich 36000
+gcp 34000
+glp 32000
+gmp 30000
+iso 28000
+standard 26000
+guideline 24000
+regulation 22000
+
+# Site Management & Operations
+site 50000
+initiation 48000
+visit 46000
+monitoring 44000
+closeout 42000
+investigator 40000
+meeting 38000
+training 36000
+qualification 34000
+feasibility 32000
+assessment 30000
+selection 28000
+activation 26000
+maintenance 24000
+termination 22000
+archival 20000
+essential 18000
+documents 16000
+master 15000
+file 14000
+regulatory 13000
+binder 12000
+source 11000
+documentation 10000
+investigator 9500
+meeting 9000
+kickoff 8500
+training 8000
+
+# Data Management & EDC
+data 60000
+management 58000
+collection 56000
+entry 54000
+validation 52000
+cleaning 50000
+analysis 48000
+reporting 46000
+database 44000
+edc 42000
+electronic 40000
+crf 38000
+case 36000
+report 34000
+form 32000
+query 30000
+resolution 28000
+discrepancy 26000
+edit 24000
+check 22000
+programming 20000
+validation 18000
+migration 16000
+archival 14000
+database 12000
+lock 10000
+unlock 8000
+
+# Safety & Pharmacovigilance
+safety 50000
+pharmacovigilance 48000
+surveillance 46000
+reporting 44000
+assessment 42000
+monitoring 40000
+signal 38000
+detection 36000
+evaluation 34000
+management 32000
+communication 30000
+meddra 28000
+coding 26000
+dictionary 24000
+terminology 22000
+classification 20000
+severity 18000
+seriousness 16000
+expectedness 14000
+causality 12000
+assessment 10000
+aggregate 9000
+reporting 8000
+development 7000
+safety 6000
+update 5000
+report 4000
+dsur 3500
+psur 3000
+
+# Ethics & IRB/IEC
+ethics 45000
+committee 43000
+institutional 41000
+review 39000
+board 37000
+independent 35000
+ethicist 33000
+consultation 31000
+approval 29000
+continuing 27000
+review 25000
+amendment 23000
+deviation 21000
+waiver 19000
+exemption 17000
+emergency 15000
+research 13000
+vulnerable 11000
+population 9000
+minors 8000
+incapable 7000
+persons 6000
+vulnerable 5500
+subjects 5000
+
+# Study Design & Statistics
+design 50000
+methodology 48000
+hypothesis 46000
+objective 44000
+randomized 42000
+controlled 40000
+double 38000
+blind 36000
+single 34000
+blind 32000
+open 30000
+label 28000
+crossover 26000
+parallel 24000
+group 22000
+factorial 20000
+adaptive 18000
+design 16000
+interventional 14000
+observational 12000
+retrospective 10000
+prospective 8000
+longitudinal 7000
+cross 60000
+sectional 5500
+superiority 5000
+noninferiority 4500
+equivalence 4000
+bioequivalence 3500
+
+# Regulatory & Submissions
+regulatory 60000
+submission 58000
+approval 56000
+review 54000
+meeting 52000
+preind 50000
+endofphase2 48000
+prephase3 46000
+rolling 44000
+submission 42000
+priority 40000
+breakthrough 38000
+accelerated 36000
+orphan 34000
+designation 32000
+fast 30000
+track 28000
+special 26000
+protocol 24000
+assessment 22000
+scientific 20000
+advice 18000
+saga 16000
+advice 14000
+
+# CRO & Vendor Management
+cro 40000
+contract 38000
+research 36000
+organization 34000
+vendor 32000
+supplier 30000
+procurement 28000
+selection 26000
+qualification 24000
+oversight 22000
+management 20000
+relationship 18000
+kpi 16000
+metrics 14000
+performance 12000
+outsourcing 10000
+insourcing 8000
+hybrid 6000
+model 4000
+
+# Budget & Finance
+budget 45000
+forecast 43000
+contract 41000
+negotiation 39000
+payment 37000
+milestone 35000
+pass 33000
+through 31000
+reimbursement 29000
+cost 27000
+allocation 25000
+variance 23000
+analysis 21000
+financial 19000
+planning 17000
+projection 15000
+
+# Emerging Terms & Technology
+decentralized 40000
+trial 38000
+digital 36000
+health 34000
+technology 32000
+wearable 30000
+device 28000
+mobile 26000
+application 24000
+telemedicine 22000
+remote 20000
+monitoring 18000
+electronic 16000
+consent 14000
+patient 12000
+reported 10000
+outcome 9000
+measure 8000
+prom 7000
+clinician 6000
+reported 5500
+outcome 5000
+measure 4500
+clinrom 4000
+artificial 3500
+intelligence 3000
+machine 2500
+learning 2000
+predictive 1500
+analytics 1000
+blockchain 800
+data 600
+integrity 400
+rwe 350
+real 300
+world 250
+evidence 200
+pragmatic 150
+trial 100
+
+# Clinical Operations Terms
+startup 30000
+activities 28000
+timeline 26000
+milestone 24000
+critical 22000
+path 20000
+gantt 18000
+chart 16000
+resource 14000
+allocation 12000
+workload 10000
+capacity 8000
+planning 6000
+forecasting 4000
+scenario 2000
+risk 1500
+assessment 1000
+mitigation 500
+
+# Medical Writing & Documentation
+protocol 35000
+writing 33000
+medical 31000
+writing 29000
+csr 27000
+clinical 25000
+study 23000
+report 21000
+ib 19000
+investigator 17000
+brochure 15000
+sap 13000
+statistical 11000
+analysis 9000
+plan 7000
+dossier 5000
+ctd 3000
+module 1000
+
+# Abbreviations (High Frequency to Preserve)
+ae 100000
+sae 95000
+susar 90000
+sar 85000
+adr 80000
+ade 75000
+meddra 70000
+smq 65000
+ic 60000
+icf 58000
+hipaa 56000
+gcp 54000
+glp 52000
+gmp 50000
+gvp 48000
+iso 46000
+iec 44000
+irb 42000
+ec 40000
+hra 38000
+pi 36000
+subi 34000
+cra 32000
+ctm 30000
+crc 28000
+dm 26000
+pv 24000
+qa 22000
+qc 20000
+sop 18000
+tmf 16000
+isf 14000
+ib 12000
+csr 10000
+dsmb 9000
+idmc 8500
+cab 8000
+steering 7500
+committee 7000
+sc 65000
+edc 60000
+ivrs 55000
+iwrs 50000
+ctms 45000
+cdms 40000
+rave 35000
+medidata 30000
+oracle 25000
+inform 20000
+sas 15000
+r 10000
+python 5000
+prn 4500
+qd 4000
+bid 3500
+tid 3000
+qid 2500
+po 2000
+iv 1500
+im 1000
+sc 500
+
+# Compound Terms (Multi-word phrases)
+informed consent 80000
+adverse event 75000
+serious adverse event 70000
+investigator brochure 65000
+trial master file 60000
+essential documents 55000
+case report form 50000
+data monitoring committee 45000
+independent ethics committee 40000
+institutional review board 35000
+good clinical practice 30000
+quality assurance 25000
+quality control 20000
+standard operating procedure 15000
+corrective action preventive action 10000
+electronic data capture 8000
+source data verification 6000
+protocol deviation 4000
+safety monitoring plan 2000
+investigator meeting 18000
+site initiation visit 16000
+monitoring visit 14000
+close out visit 12000
+kick off meeting 10000
+training session 8000
+protocol amendment 6000
+regulatory submission 4000
+data lock 2000

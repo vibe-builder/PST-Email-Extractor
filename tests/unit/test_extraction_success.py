@@ -3,14 +3,15 @@ Tests for successful extraction scenarios.
 Tests positive paths where extraction should succeed and produce expected outputs.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
+import pytest
+
+from pst_email_extractor.core.backends.base import PstBackend
 from pst_email_extractor.core.extraction import perform_extraction
 from pst_email_extractor.core.models import ExtractionConfig
-from pst_email_extractor.core.backends.base import PstBackend
 
 
 @pytest.fixture

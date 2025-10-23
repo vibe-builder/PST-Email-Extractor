@@ -4,9 +4,7 @@ Unit tests for progress tracking and ETA calculation.
 
 from __future__ import annotations
 
-import time
-from unittest.mock import Mock, patch
-import pytest
+from unittest.mock import Mock
 
 from pst_email_extractor.core.extraction import _emit_progress
 from pst_email_extractor.core.models import ProgressUpdate
@@ -48,7 +46,7 @@ def test_emit_progress_no_callback():
 
 def test_emit_progress_callback_exception():
     """Test _emit_progress handles callback exceptions gracefully."""
-    def failing_callback(update):
+    def failing_callback(_update):
         raise RuntimeError("Callback failed")
 
     # Should not raise the exception
@@ -60,7 +58,7 @@ def test_progress_message_formatting():
     # Mock the progress proxy to capture messages
     captured_messages = []
 
-    def mock_emit(callback, current, total, message):
+    def mock_emit(_callback, current, total, message):
         captured_messages.append((current, total, message))
 
         # This would require mocking the entire extraction loop
@@ -73,7 +71,7 @@ def test_progress_message_formatting():
             (90, 100, "Processed 90/100 (15.0/sec) • ETA 00:00"),
         ]
 
-        for current, total, expected_msg in test_messages:
+        for _current, _total, expected_msg in test_messages:
             # Test message format expectations (basic validation)
             assert 'Processed' in expected_msg
             assert '/' in expected_msg  # Should have X/Y format
@@ -86,15 +84,11 @@ def test_progress_rate_calculation():
     # Test the EMA formula: new_rate = 0.8 * old_rate + 0.2 * instantaneous_rate
 
     # Initial rate
-    old_rate = 10.0  # emails/sec
-    inst_rate = 15.0  # new instantaneous rate
     expected_new_rate = 0.8 * 10.0 + 0.2 * 15.0  # = 11.0
 
     assert abs(expected_new_rate - 11.0) < 0.001
 
     # Another step
-    old_rate = 11.0
-    inst_rate = 8.0
     expected_new_rate = 0.8 * 11.0 + 0.2 * 8.0  # = 10.4
 
     assert abs(expected_new_rate - 10.4) < 0.001
@@ -131,9 +125,6 @@ def test_zero_rate_eta_handling():
     rate = 0.0
 
     # Avoid division by zero
-    if rate > 0:
-        seconds = remaining / rate
-    else:
-        seconds = 0  # or some default
+    seconds = remaining / rate if rate > 0 else 0
 
     assert seconds == 0

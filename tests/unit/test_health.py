@@ -4,9 +4,10 @@ Unit tests for PST health analysis functionality.
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import pytest
 
 from pst_email_extractor.core.analysis import PstHealth, analyze_pst_health
 
@@ -77,9 +78,9 @@ def test_analyze_pst_health_no_pypff(mock_path_class):
     mock_path_class.return_value = mock_path_instance
 
     # Mock import error for pypff
-    with patch.dict('sys.modules', {'pypff': None}):
-        with patch('builtins.__import__', side_effect=ImportError("No module named 'pypff'")):
-            health = analyze_pst_health(mock_path_instance)
+    with patch.dict('sys.modules', {'pypff': None}), \
+            patch('builtins.__import__', side_effect=ImportError("No module named 'pypff'")):
+        health = analyze_pst_health(mock_path_instance)
 
     assert health.total_emails == 0
     assert health.folder_count == 0
@@ -98,9 +99,8 @@ def test_analyze_pst_health_file_size_calculation(mock_path_class):
     mock_path_class.return_value = mock_path_instance
 
     # Mock pypff failure
-    with patch.dict('sys.modules', {'pypff': None}):
-        with patch('builtins.__import__', side_effect=ImportError):
-            health = analyze_pst_health(mock_path_instance)
+    with patch.dict('sys.modules', {'pypff': None}), patch('builtins.__import__', side_effect=ImportError):
+        health = analyze_pst_health(mock_path_instance)
 
     assert health.estimated_size_mb == 50.0
 
@@ -116,7 +116,6 @@ def test_analyze_pst_health_sample_limit():
     assert callable(analyze_pst_health)
 
     # Test with a non-existent file (should handle gracefully)
-    from pathlib import Path
     health = analyze_pst_health(Path("/nonexistent.pst"))
     assert health.total_emails == 0
     assert health.sampled == 0

@@ -4,12 +4,10 @@ Integration tests for AI pipeline with exporters.
 
 from __future__ import annotations
 
-import pytest
-from pathlib import Path
 from unittest.mock import Mock, patch
 
-from pst_email_extractor.exporters.json_writer import JSONStreamWriter
 from pst_email_extractor.exporters.csv_writer import CSVStreamWriter
+from pst_email_extractor.exporters.json_writer import JSONStreamWriter
 
 
 def test_json_exporter_with_ai_sanitization(tmp_path):
@@ -34,7 +32,7 @@ def test_json_exporter_with_ai_sanitization(tmp_path):
 
     # Read and verify content
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
     assert "test_001" in data
@@ -67,7 +65,7 @@ def test_csv_exporter_with_ai_sanitization(tmp_path):
     assert output_file.exists()
 
     # Read and verify content
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         lines = f.readlines()
 
     # Should have header + 1 data row
@@ -99,7 +97,7 @@ def test_exporter_without_ai_processing(tmp_path):
     assert output_file.exists()
 
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
     email_data = data["test_003"]
@@ -133,7 +131,7 @@ def test_ai_pipeline_error_handling(tmp_path):
     assert output_file.exists()
 
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
         # Should contain sanitized data (regex sanitization happens first, even if other AI processing fails)
@@ -153,14 +151,14 @@ def test_ai_polish_with_missing_dependencies(tmp_path):
     }
 
     # Mock create_text_pipeline to return None (simulating missing dependencies)
-    with patch('pst_email_extractor.ai.pipeline.create_text_pipeline', return_value=None):
-        with JSONStreamWriter(str(output_file), ai_sanitize=False, ai_polish=True) as writer:
-            writer.write(test_email)
+    with patch('pst_email_extractor.ai.pipeline.create_text_pipeline', return_value=None), \
+            JSONStreamWriter(str(output_file), ai_sanitize=False, ai_polish=True) as writer:
+        writer.write(test_email)
 
     assert output_file.exists()
 
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
     # Should contain original data (no AI processing available)
@@ -195,7 +193,7 @@ def test_multiple_emails_with_ai_processing(tmp_path):
     assert output_file.exists()
 
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
     # Check both emails were processed
@@ -232,7 +230,7 @@ def test_ai_neural_processing_with_model_dir(tmp_path):
     assert output_file.exists()
 
     import json
-    with open(output_file, 'r', encoding='utf-8') as f:
+    with open(output_file, encoding='utf-8') as f:
         data = json.load(f)
 
     # Should contain some data (neural processing may or may not work)

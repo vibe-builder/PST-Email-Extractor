@@ -1,17 +1,16 @@
 """Comprehensive tests for AI pipeline components."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from pst_email_extractor.ai.pipeline import (
-    create_text_pipeline,
-    _RegexSanitizer,
-    _SymSpellCorrector,
+    TextPipeline,
     _LanguageToolPolisher,
     _NeuralPolisher,
-    TextPipeline,
-    load_config
+    _RegexSanitizer,
+    _SymSpellCorrector,
+    create_text_pipeline,
+    load_config,
 )
 
 
@@ -148,7 +147,7 @@ class TestLanguageToolPolisher:
         polisher._tool.correct.return_value = "corrected "
 
         long_text = "word " * 300  # Over 1000 characters
-        result = polisher.polish(long_text)
+        polisher.polish(long_text)
 
         # Should call correct multiple times due to chunking
         assert polisher._tool.correct.call_count > 1
@@ -247,8 +246,7 @@ class TestTextPipeline:
         pipeline = TextPipeline(None, None, None, None)
 
         # Mock a simple processor
-        original_process = pipeline.process
-        pipeline.process = Mock(side_effect=lambda text, **kwargs: f"processed_{text}")
+        pipeline.process = Mock(side_effect=lambda text, **_kwargs: f"processed_{text}")
 
         texts = ["text1", "text2", "text3"]
         results = pipeline.process_batch_parallel(texts, sanitize=False, polish=False)
@@ -312,7 +310,7 @@ class TestCreateTextPipeline:
             "language": "en-GB"
         }
 
-        with patch('builtins.open', create=True) as mock_open, \
+        with patch('builtins.open', create=True), \
              patch('json.load', return_value=mock_config):
             config = load_config("/fake/config.json")
             assert config["enable_sanitize"] is True

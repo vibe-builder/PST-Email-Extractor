@@ -27,7 +27,7 @@ Install additional capabilities as needed:
 # Performance optimizations (dynamic batching, memory monitoring)
 pip install -e ".[perf]"
 
-# Attachment content extraction (PDF, DOCX, OCR)
+# Attachment content extraction (PDF, DOCX, OCR, MSG parsing)
 pip install -e ".[attachments]"
 
 # AI text processing (PII sanitization, grammar correction)
@@ -47,6 +47,7 @@ pip install -e ".[perf,attachments,ai]"
 - `pytesseract` - OCR for images and scanned documents
 - `mammoth` - DOCX text extraction
 - `chardet` - Character encoding detection
+- `extract-msg` - MSG file parsing for embedded messages
 
 **AI Features** (`[ai]`):
 - `symspellpy` - Spell correction
@@ -90,6 +91,7 @@ For detailed performance optimization guide, see **[PERFORMANCE.md](PERFORMANCE.
 - Use `--compress` flag for 50-70% disk space savings
 - Parallel folder processing automatically enabled for multi-folder PST files
 - Expect 2-5x speedup on 4+ core systems with multiple folders
+- GUI Settings provide persistent configuration for optimal performance
 
 ## Requirements
 

@@ -11,10 +11,11 @@ import cProfile
 import logging
 import pstats
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def profile_section(section_name: str):
         yield
     finally:
         elapsed = time.perf_counter() - start
-        logger.info(f"⏱️  {section_name}: {elapsed:.2f}s")
+        logger.info("Profile %s: %.2fs", section_name, elapsed)
 
 
 def timed(func: F) -> F:
@@ -58,11 +59,11 @@ class SimpleProfiler:
         self.output_path = Path(output_path) if output_path else None
         self.profiler = cProfile.Profile()
         
-    def __enter__(self):
+    def __enter__(self) -> SimpleProfiler:
         self.profiler.enable()
         return self
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.profiler.disable()
         
         # Print stats to console
@@ -72,7 +73,7 @@ class SimpleProfiler:
         
         if self.output_path:
             with self.output_path.open('w') as f:
-                stats.stream = f
+                stats.stream = f  # type: ignore[attr-defined]
                 stats.print_stats(50)  # Top 50 functions
             logger.info(f"Profile saved to {self.output_path}")
         else:
@@ -90,9 +91,9 @@ class MemoryMonitor:
         monitor.report()
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         try:
-            import psutil  # type: ignore[import]
+            import psutil  # type: ignore[import-untyped]
             self.psutil = psutil
             self.available = True
         except ImportError:
@@ -102,23 +103,23 @@ class MemoryMonitor:
         self.peak_usage = 0
         self.start_usage = 0
         
-    def start(self):
+    def start(self) -> None:
         """Start monitoring memory."""
         if not self.available:
             return
         mem = self.psutil.virtual_memory()
         self.start_usage = mem.used / (1024 ** 2)  # MB
         self.peak_usage = self.start_usage
-        
-    def update(self):
+
+    def update(self) -> None:
         """Update peak memory usage."""
         if not self.available:
             return
         mem = self.psutil.virtual_memory()
         current = mem.used / (1024 ** 2)
         self.peak_usage = max(self.peak_usage, current)
-        
-    def report(self):
+
+    def report(self) -> None:
         """Log memory usage summary."""
         if not self.available:
             return

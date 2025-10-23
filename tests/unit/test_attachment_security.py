@@ -3,10 +3,11 @@ Tests for attachment security features.
 Tests that attachment size limits prevent DoS attacks.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock
+
+import pytest
 
 from pst_email_extractor.pst_parser import _extract_attachments
 

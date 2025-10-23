@@ -3,8 +3,9 @@ Smoke tests for GUI components.
 Tests that GUI classes can be imported and instantiated without errors.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
 
 
 class TestGUISmoke:
@@ -25,16 +26,15 @@ class TestGUISmoke:
         extractor = PSTExtractor()
 
         # Mock os.path.exists and the pypff availability check
-        with patch("os.path.exists", return_value=True):
-            with patch("pst_email_extractor.gui.main.is_pypff_available", return_value=True):
-                # Mock backend open to avoid real file operations
-                with patch("pst_email_extractor.gui.main.PypffBackend") as mock_backend_cls:
-                    backend = Mock()
-                    mock_backend_cls.return_value = backend
-                    result = extractor.load_pst("/fake/path.pst")
-                    assert result is True
-                    assert extractor.is_loaded
-                    assert extractor.pst_path == "/fake/path.pst"
+        with patch("os.path.exists", return_value=True), \
+                patch("pst_email_extractor.gui.main.is_pypff_available", return_value=True), \
+                patch("pst_email_extractor.gui.main.PypffBackend") as mock_backend_cls:
+            backend = Mock()
+            mock_backend_cls.return_value = backend
+            result = extractor.load_pst("/fake/path.pst")
+            assert result is True
+            assert extractor.is_loaded
+            assert extractor.pst_path == "/fake/path.pst"
 
     def test_pst_extractor_get_folders(self):
         """Test PSTExtractor.get_folders returns empty list (as implemented)."""
@@ -59,26 +59,26 @@ class TestGUISmoke:
         }
         mock_handle = Mock()
 
-        with patch("os.path.exists", return_value=True):
-            with patch("pst_email_extractor.gui.main.is_pypff_available", return_value=True):
-                with patch("pst_email_extractor.gui.main.PypffBackend") as mock_backend_cls:
-                    backend = Mock()
-                    backend.list_folders.return_value = []
-                    backend.iter_folder_messages.return_value = iter([(mock_record, mock_handle)])
-                    mock_backend_cls.return_value = backend
+        with patch("os.path.exists", return_value=True), \
+                patch("pst_email_extractor.gui.main.is_pypff_available", return_value=True), \
+                patch("pst_email_extractor.gui.main.PypffBackend") as mock_backend_cls:
+            backend = Mock()
+            backend.list_folders.return_value = []
+            backend.iter_folder_messages.return_value = iter([(mock_record, mock_handle)])
+            mock_backend_cls.return_value = backend
 
-                    extractor.load_pst("/fake/path.pst")
-                    folder = PSTFolder(name="Inbox", path="/Root/Inbox", email_count=1)
-                    emails = extractor.get_emails_from_folder(folder)
+            extractor.load_pst("/fake/path.pst")
+            folder = PSTFolder(name="Inbox", path="/Root/Inbox", email_count=1)
+            emails = extractor.get_emails_from_folder(folder)
 
-                    assert len(emails) == 1
-                    assert emails[0].email_id == "test_001"
-                    assert emails[0].subject == "Test Subject"
+            assert len(emails) == 1
+            assert emails[0].email_id == "test_001"
+            assert emails[0].subject == "Test Subject"
 
     def test_pst_extractor_get_total_email_count(self):
         """Test PSTExtractor.get_total_email_count."""
-        from pst_email_extractor.gui.main import PSTExtractor
         from pst_email_extractor.core.models import FolderInfo
+        from pst_email_extractor.gui.main import PSTExtractor
 
         extractor = PSTExtractor()
 

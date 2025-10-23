@@ -10,12 +10,13 @@ from __future__ import annotations
 
 import logging
 import mimetypes
+from collections.abc import Mapping
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
-from .base import EmailExporter, AIPipelineMixin
+from .base import AIPipelineMixin, EmailExporter
 
 logger = logging.getLogger("pst_email_extractor.exporters.eml")
 

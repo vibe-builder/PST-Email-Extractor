@@ -4,9 +4,10 @@ Unit tests for malformed PST file handling and error scenarios.
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
+
+import pytest
 
 from pst_email_extractor.core.analysis import analyze_pst_health
 from pst_email_extractor.core.extraction import perform_extraction
@@ -86,7 +87,7 @@ def test_extraction_config_validation():
 
 @patch('pst_email_extractor.core.backends.PypffBackend.open')
 @patch('pst_email_extractor.core.backends.PypffBackend.is_available', return_value=True)
-def test_extraction_with_invalid_pst_path(mock_available, mock_open):
+def test_extraction_with_invalid_pst_path(_mock_available, mock_open):
     """Test extraction handling with invalid PST path."""
     mock_open.side_effect = FileNotFoundError("PST file not found")
 
@@ -101,7 +102,7 @@ def test_extraction_with_invalid_pst_path(mock_available, mock_open):
 
 
 @patch('pst_email_extractor.core.backends.PypffBackend.is_available', return_value=False)
-def test_extraction_without_pypff(mock_available):
+def test_extraction_without_pypff(_mock_available):
     """Test extraction when pypff library is not available."""
     config = ExtractionConfig(
         pst_path=Path("test.pst"),

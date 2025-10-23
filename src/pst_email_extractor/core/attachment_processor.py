@@ -10,8 +10,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any, Literal
-import re
+from typing import Literal
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +154,7 @@ class AttachmentContentExtractor:
                 pytesseract.get_tesseract_version()  # Test availability
                 self._ocr_config = f'--psm 3 -l {",".join(self.options.ocr_languages)}'
             except Exception as e:
-                logger.warning(f"Tesseract not properly configured: {e}")
+                logger.info(f"Tesseract not properly configured; OCR disabled: {e}")
                 self._ocr_config = None
         else:
             self._ocr_config = None
@@ -169,7 +168,7 @@ class AttachmentContentExtractor:
                 if mime_type and mime_type != 'application/octet-stream':
                     return mime_type
             except Exception:
-                pass
+                logger.debug("python-magic detection failed; falling back to extension.")
 
         # Fallback to filename-based detection (cached for performance)
         return self._mime_from_extension(filename)
@@ -320,8 +319,9 @@ class AttachmentContentExtractor:
             return None
 
         try:
-            import PIL.Image
             import io
+
+            import PIL.Image
 
             img = PIL.Image.open(io.BytesIO(data))
             text = pytesseract.image_to_string(img, config=self._ocr_config)
@@ -377,8 +377,27 @@ class AttachmentContentExtractor:
 
         return metadata
 
-    def _handle_embedded_message(self, data: bytes) -> tuple[str | None, ExtractionMethod]:
+    def _handle_embedded_message(self, _data: bytes) -> tuple[str | None, ExtractionMethod]:
         """Handle embedded message attachments (MSG format)."""
-        # For now, return None - this will be handled by the backend
-        # when converting MSG to EML format
-        return None, "msg_eml"
+        # Best-effort MSG text extraction using extract_msg if available
+        try:
+            import io
+
+            import extract_msg  # type: ignore[import-untyped]
+
+            with io.BytesIO(_data) as bio:
+                msg = extract_msg.Message(bio)
+                parts: list[str] = []
+                if getattr(msg, 'subject', None):
+                    parts.append(str(msg.subject))
+                if getattr(msg, 'sender', None):
+                    parts.append(str(msg.sender))
+                if getattr(msg, 'date', None):
+                    parts.append(str(msg.date))
+                if getattr(msg, 'body', None):
+                    parts.append(str(msg.body))
+                text = "\n".join(p.strip() for p in parts if p and str(p).strip())
+                return (text if text else None), "msg_text"
+        except Exception:
+            # Fallback to letting backend convert MSG to EML where supported
+            return None, "msg_eml"

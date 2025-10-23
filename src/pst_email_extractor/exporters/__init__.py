@@ -11,8 +11,9 @@ from __future__ import annotations
 import csv
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .base import ADDRESS_FIELDS, EMAIL_FIELDS, HOST_FIELDS, _normalise_output_path
 from .csv_writer import CSVStreamWriter, export_to_csv
@@ -54,7 +55,7 @@ def export_addresses_to_csv(output_path: str | Path, addresses: list[Mapping[str
             row = {}
             for field in ADDRESS_FIELDS:
                 value = entry.get(field, "")
-                if isinstance(value, (list, tuple, set)):
+                if isinstance(value, list | tuple | set):
                     value = "; ".join(str(item) for item in sorted(value) if item)
                 row[field] = str(value)
             writer.writerow(row)

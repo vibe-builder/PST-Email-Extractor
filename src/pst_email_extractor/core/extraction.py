@@ -4,20 +4,22 @@ Extraction orchestration logic.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Sequence
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 from pathlib import Path
 
 from pst_email_extractor import exporters, id_generator
 from pst_email_extractor.core.backends import DependencyError, PypffBackend
+from pst_email_extractor.core.models import (
+    ExtractionConfig,
+    ExtractionResult,
+    ProgressCallback,
+    ProgressUpdate,
+)
 from pst_email_extractor.logging import configure_logging, get_logger
+
 from .analysis import analyze_pst_health
-import time
-
-# Format-specific batching configuration (moved to module level for performance)
-FORMAT_BATCH_SIZES = {"json": 500, "csv": 1000, "eml": 50, "mbox": 100}
-
-logger = get_logger(__name__)
 
 # Try to import psutil for dynamic batch sizing
 try:
@@ -26,15 +28,15 @@ try:
 except ImportError:
     HAS_PSUTIL = False
 
-from .models import (
-    ExtractionConfig,
-    ExtractionResult,
-    ProgressCallback,
-    ProgressUpdate,
-)
+# Format-specific batching configuration (moved to module level for performance)
+FORMAT_BATCH_SIZES = {"json": 500, "csv": 1000, "eml": 50, "mbox": 100}
 
+# Supported export formats
 SUPPORTED_FORMATS = {"json", "csv", "eml", "mbox"}
+# Formats supported for address analysis mode
 ADDRESS_MODES = {"json", "csv"}
+
+logger = get_logger(__name__)
 
 
 def _normalise_formats(formats: Sequence[str]) -> list[str]:
@@ -57,10 +59,8 @@ def _emit_progress(callback: ProgressCallback | None, current: int, total: int, 
     try:
         callback(update)
     except TypeError:
-        try:
+        with suppress(Exception):
             callback(current, total, status)  # type: ignore[misc]
-        except Exception:
-            pass  # Ignore callback failures
     except Exception:
         pass  # Ignore callback failures
 
@@ -103,6 +103,17 @@ def perform_extraction(
         0,
         f"PST health: messages~{health.total_emails}, folders={health.folder_count}, size={health.estimated_size_mb}MB, health={health.health_score}%",
     )
+    # Warn for large PSTs when psutil is unavailable (static batch sizing)
+    try:
+        size_mb = float(getattr(health, "estimated_size_mb", 0) or 0)
+        if not HAS_PSUTIL and size_mb >= 1024:
+            logger.warning(
+                "Large PST (~%.0f MB) detected and psutil not installed; dynamic batch sizing disabled.\n"
+                "Consider installing psutil or using --compress to reduce memory usage.",
+                size_mb,
+            )
+    except Exception:
+        pass
 
     unique_id = id_generator.generate()
 
@@ -130,7 +141,7 @@ def perform_extraction(
         if isinstance(value, str):
             parts = [part.strip() for part in value.replace(",", ";").split(";")]
             return [part for part in parts if part]
-        if isinstance(value, (list, tuple, set)):
+        if isinstance(value, list | tuple | set):
             parts = [str(part).strip() for part in value if part]
             return [part for part in parts if part]
         return []
@@ -139,7 +150,7 @@ def perform_extraction(
         try:
             report = backend.analyze_addresses(
                 deduplicate=config.deduplicate,
-                progress_callback=_addresses_progress,
+                _progress_callback=_addresses_progress,
             )
         finally:
             backend.close()
@@ -193,10 +204,7 @@ def perform_extraction(
         elapsed = max(1e-6, now - last_time)
         delta = current - progress_state.get("current", 0)
         inst_rate = (delta / elapsed) if delta > 0 else 0.0
-        if ema_rate is None:
-            ema_rate = inst_rate
-        else:
-            ema_rate = 0.8 * ema_rate + 0.2 * inst_rate
+        ema_rate = inst_rate if ema_rate is None else 0.8 * ema_rate + 0.2 * inst_rate
 
         progress_state.update({"current": current, "total": total, "status": status})
 
@@ -334,7 +342,7 @@ def perform_extraction(
                     recipient_values: list[str] = []
                     for field in ("To", "CC", "BCC"):
                         recipient_values.extend(_normalise_recipients(email.get(field)))
-                    recipients_display = ", ".join(dict.fromkeys(recipient_values))
+                    ", ".join(dict.fromkeys(recipient_values))
 
                     html_records.append(
                         {

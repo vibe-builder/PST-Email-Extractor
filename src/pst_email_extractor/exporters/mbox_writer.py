@@ -11,12 +11,13 @@ from __future__ import annotations
 import logging
 import mailbox
 import mimetypes
+from collections.abc import Mapping
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
-from .base import EmailExporter, AIPipelineMixin, _normalise_output_path
+from .base import AIPipelineMixin, EmailExporter, _normalise_output_path
 
 logger = logging.getLogger("pst_email_extractor.exporters.mbox")
 
@@ -129,7 +130,7 @@ class MBOXWriter(EmailExporter, AIPipelineMixin):
                         subtype=subtype,
                         filename=attach_path.name,
                     )
-                except (IOError, OSError) as e:
+                except OSError as e:
                     logger.warning("Could not add attachment %s to MBOX: %s", attach_path.name, e)
 
         # Add message to MBOX

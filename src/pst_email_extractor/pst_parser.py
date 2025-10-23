@@ -9,6 +9,7 @@ missing.  Callers are expected to check :func:`is_pypff_available` (or call
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import logging
 import os
@@ -20,7 +21,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 
-from pst_email_extractor.core.security import MAX_ATTACHMENT_SIZE, CHUNK_SIZE
+from pst_email_extractor.core.security import CHUNK_SIZE, MAX_ATTACHMENT_SIZE
 
 logger = logging.getLogger("pst_email_extractor.pst_parser")
 logger.setLevel(logging.INFO)
@@ -44,8 +45,8 @@ def _install_handlers(log_path: Path | None = None) -> Path:
     elif _LOG_PATH is None:
         # Use secure user-specific location for logs when not explicitly set
         # This prevents information leakage on multi-user systems
-        import tempfile
         import getpass
+        import tempfile
         try:
             # Try to use user-specific temp directory
             user_temp = Path(tempfile.gettempdir()) / f"pst_extractor_{getpass.getuser()}"
@@ -60,7 +61,6 @@ def _install_handlers(log_path: Path | None = None) -> Path:
 
     # Set restrictive permissions on log file (readable/writable by owner only)
     try:
-        import os
         import stat
         # Create file first, then set permissions
         if not log_target.exists():
@@ -371,7 +371,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
 
                 # Validate size is reasonable and not maliciously large
                 try:
-                    if not isinstance(candidate_size, (int, float)) or candidate_size > MAX_ATTACHMENT_SIZE:
+                    if not isinstance(candidate_size, int | float) or candidate_size > MAX_ATTACHMENT_SIZE:
                         logger.warning(
                             "Attachment %s for message %s exceeds size limit (%s > %d bytes), skipping",
                             safe_name, email_hash, candidate_size, MAX_ATTACHMENT_SIZE
@@ -395,7 +395,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
                 data = b""
 
                 # Only stream if we have a valid size
-                if isinstance(candidate_size, (int, float)) and candidate_size > 0:
+                if isinstance(candidate_size, int | float) and candidate_size > 0:
                     while bytes_read < candidate_size:
                         remaining = min(CHUNK_SIZE, candidate_size - bytes_read)
                         try:
@@ -408,7 +408,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
                             # If streaming fails, try fallback to direct read
                             try:
                                 data = getattr(attachment, "data", b"")
-                                if isinstance(data, (bytes, bytearray)) and len(data) > MAX_ATTACHMENT_SIZE:
+                                if isinstance(data, bytes | bytearray) and len(data) > MAX_ATTACHMENT_SIZE:
                                     logger.warning(
                                         "Attachment %s fallback data exceeds size limit (%d > %d bytes), skipping",
                                         safe_name, len(data), MAX_ATTACHMENT_SIZE
@@ -420,7 +420,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
 
                 # Final size validation
                 try:
-                    if isinstance(data, (bytes, bytearray)) and len(data) > MAX_ATTACHMENT_SIZE:
+                    if isinstance(data, bytes | bytearray) and len(data) > MAX_ATTACHMENT_SIZE:
                         logger.warning(
                             "Attachment %s final size exceeds limit (%d > %d bytes), skipping",
                             safe_name, len(data), MAX_ATTACHMENT_SIZE
@@ -437,7 +437,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
             else:
                 data = getattr(attachment, "data", b"")
                 try:
-                    if isinstance(data, (bytes, bytearray)) and len(data) > MAX_ATTACHMENT_SIZE:
+                    if isinstance(data, bytes | bytearray) and len(data) > MAX_ATTACHMENT_SIZE:
                         logger.warning(
                             "Attachment %s data exceeds size limit (%d > %d bytes), skipping",
                             safe_name, len(data), MAX_ATTACHMENT_SIZE
@@ -452,7 +452,7 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
         except Exception:
             data = getattr(attachment, "data", b"")
             try:
-                if isinstance(data, (bytes, bytearray)) and len(data) > MAX_ATTACHMENT_SIZE:
+                if isinstance(data, bytes | bytearray) and len(data) > MAX_ATTACHMENT_SIZE:
                     logger.warning(
                         "Attachment %s exception data exceeds size limit (%d > %d bytes), skipping",
                         safe_name, len(data), MAX_ATTACHMENT_SIZE
@@ -490,15 +490,13 @@ def _extract_attachments(message: Any, email_hash: str, attachments_root: Path |
             logger.warning("Failed to write attachment %s for message %s: %s", safe_name, email_hash, exc)
 
     if not extracted_paths and email_dir.exists():
-        try:
+        with contextlib.suppress(OSError):
             email_dir.rmdir()
-        except OSError:
-            pass
 
     return extracted_paths, len(extracted_paths)
 
 
-def _derive_thread_metadata(subject: str, message_id: str, transport_headers: str) -> dict:
+def _derive_thread_metadata(_subject: str, message_id: str, transport_headers: str) -> dict:
     """
     Derive thread metadata from email headers.
     
@@ -846,7 +844,7 @@ def _iterate_folder(
     finally:
         # Force a progress update when folder is complete
         if progress_state and index_counter[0] > 0:
-            _report_progress(progress_state, index_counter[0], f"Completed folder processing", force=True)
+            _report_progress(progress_state, index_counter[0], "Completed folder processing", force=True)
 
 
 def iter_emails(
@@ -929,10 +927,6 @@ def iter_emails(
         logger.exception("Error reading PST file: %s", exc)
         raise
     finally:
-        try:
+        with contextlib.suppress(Exception):  # pragma: no cover - defensive
             pst_file.close()
-        except Exception:  # pragma: no cover - defensive
-            pass
-
-
 

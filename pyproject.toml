@@ -63,6 +63,7 @@ attachments = [
     "mammoth>=1.6.0",  # DOCX text extraction
     "chardet>=5.2.0",  # Character encoding detection
     "Pillow>=10.0.0",  # Image processing for OCR
+    "extract-msg>=0.49.0",  # MSG parsing for embedded messages
 ]
 
 [project.scripts]

@@ -6,9 +6,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-
-import pytest
+from unittest.mock import Mock, patch
 
 from pst_email_extractor.pst_parser import _extract_attachments
 

@@ -8,8 +8,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Protocol
 
-from ..models import FolderInfo, MessageHandle, AttachmentInfo
-from ..attachment_processor import AttachmentContentOptions
+from pst_email_extractor.core.attachment_processor import AttachmentContentOptions
+from pst_email_extractor.core.models import AttachmentInfo, FolderInfo, MessageHandle
 
 
 class PstBackend(Protocol):
@@ -54,6 +54,7 @@ class PstBackend(Protocol):
         limit: int = 100,
         progress_callback=None,
         attachment_content_options: AttachmentContentOptions | None = None,
+        attachments_dir: Path | None = None,
     ) -> Iterable[tuple[dict, MessageHandle]]:
         ...
 

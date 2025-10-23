@@ -7,11 +7,11 @@ to ensure consistent behavior and type safety across different export formats.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping, Protocol
+from typing import Any, Protocol
 
-from ..ai.pipeline import create_text_pipeline
+from pst_email_extractor.ai.pipeline import create_text_pipeline
 
 
 class Exporter(Protocol):
@@ -19,7 +19,7 @@ class Exporter(Protocol):
 
     path: Path
 
-    def __enter__(self) -> "Exporter":
+    def __enter__(self) -> Exporter:
         ...
 
     def __exit__(self, exc_type, exc, tb) -> None:

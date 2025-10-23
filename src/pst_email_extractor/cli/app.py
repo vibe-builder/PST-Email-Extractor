@@ -11,14 +11,14 @@ import typer
 
 from pst_email_extractor import __version__
 from pst_email_extractor.core import ADDRESS_MODES, SUPPORTED_FORMATS
+from pst_email_extractor.core.attachment_processor import AttachmentContentOptions
 from pst_email_extractor.core.models import ExtractionConfig, ProgressUpdate
 from pst_email_extractor.core.services import run_extraction
-from pst_email_extractor.core.attachment_processor import AttachmentContentOptions
 
 app = typer.Typer(help="Extract email content from Outlook PST archives.", no_args_is_help=True)
 
 
-def _validate_paths(pst_path: Path, output_dir: Path) -> None:
+def _validate_paths(pst_path: Path) -> None:
     if not pst_path.is_file():
         raise typer.BadParameter(f"PST file not found: {pst_path}", param_hint="--pst")
     # Output directory will be auto-created by the extraction process
@@ -220,7 +220,7 @@ def extract(
     if mode not in {"extract", "addresses"}:
         raise typer.BadParameter("Mode must be either 'extract' or 'addresses'.", param_hint="--mode")
 
-    _validate_paths(pst, output)
+    _validate_paths(pst)
 
     selected_formats: list[str] = []
     if json:
@@ -274,7 +274,7 @@ def addresses(
     log_file: Path | None = typer.Option(None, "--log-file", help="Path to write the parser log file."),
 ) -> None:
     """Analyze unique addresses from a PST archive."""
-    _validate_paths(pst, output)
+    _validate_paths(pst)
     selected_formats: list[str] = []
     if json:
         selected_formats.append("json")

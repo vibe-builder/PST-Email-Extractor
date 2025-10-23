@@ -4,10 +4,6 @@ Unit tests for attachment filename conflict resolution.
 
 from __future__ import annotations
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock
-
 from pst_email_extractor.exporters.eml_writer import EMLWriter
 
 

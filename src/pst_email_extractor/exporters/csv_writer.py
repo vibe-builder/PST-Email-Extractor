@@ -12,10 +12,11 @@ import csv
 import gzip
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
-from .base import AIPipelineMixin, EMAIL_FIELDS, EmailExporter, _normalise_output_path
+from .base import EMAIL_FIELDS, AIPipelineMixin, EmailExporter, _normalise_output_path
 
 logger = logging.getLogger("pst_email_extractor.exporters.csv")
 
@@ -30,7 +31,7 @@ def _format_csv_value(value: Any) -> str:
         return ""
     if isinstance(value, str):
         return value
-    if isinstance(value, (list, tuple, set)):
+    if isinstance(value, list | tuple | set):
         if isinstance(value, set):
             value = sorted(value)
         return json.dumps(list(value), ensure_ascii=False)

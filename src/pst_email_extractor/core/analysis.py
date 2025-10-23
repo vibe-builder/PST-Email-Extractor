@@ -8,10 +8,22 @@ gracefully degrade when optional dependencies are unavailable.
 
 from __future__ import annotations
 
+import contextlib
+import logging
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-import time
+
+# Check for optional polars dependency
+try:
+    import polars as pl  # type: ignore
+    POLARS_AVAILABLE = True
+except ImportError:
+    pl = None
+    POLARS_AVAILABLE = False
+
+logger = logging.getLogger("pst_email_extractor.core.analysis")
 
 
 @dataclass(slots=True)
@@ -44,10 +56,8 @@ def _count_tree(root_folder: Any) -> tuple[int, int]:
                 raise AttributeError
             total_msgs += int(sub_count)
         except Exception:
-            try:
+            with contextlib.suppress(Exception):
                 total_msgs += sum(1 for _ in folder.sub_messages)
-            except Exception:
-                pass
         try:
             for sub in folder.sub_folders:
                 stack.append(sub)
@@ -121,10 +131,8 @@ def analyze_pst_health(pst_path: Path, *, sample_limit: int = 200) -> PstHealth:
             except Exception:
                 pass
     finally:
-        try:
+        with contextlib.suppress(Exception):
             file_obj.close()
-        except Exception:
-            pass
 
     return PstHealth(total_emails=total, folder_count=folders, corrupted_samples=corrupted, sampled=sampled, estimated_size_mb=size_mb)
 
@@ -135,20 +143,6 @@ This module provides optimized implementations for analyzing email addresses
 and transport hosts from PST files using Polars DataFrames for better memory
 efficiency and performance with large datasets.
 """
-
-import logging
-from collections.abc import Iterable, Mapping
-from typing import Any
-
-logger = logging.getLogger("pst_email_extractor.core.analysis")
-
-try:
-    import polars as pl
-    POLARS_AVAILABLE = True
-except ImportError:
-    POLARS_AVAILABLE = False
-    logger.warning("Polars not available, falling back to standard implementation")
-
 
 def _extract_address_rows(email: Mapping[str, Any]) -> list[dict[str, str]]:
     """Return normalised address rows for aggregation."""
@@ -180,7 +174,7 @@ def _extract_address_rows(email: Mapping[str, Any]) -> list[dict[str, str]]:
         recipients = email.get(field, "")
         if isinstance(recipients, str):
             candidates = [part.strip() for part in recipients.replace(",", ";").split(";")]
-        elif isinstance(recipients, (list, tuple, set)):
+        elif isinstance(recipients, list | tuple | set):
             candidates = [str(part).strip() for part in recipients]
         else:
             candidates = []
@@ -196,7 +190,7 @@ def _extract_host_values(email: Mapping[str, Any]) -> list[str]:
     received_hops = email.get("Received_Hops", [])
     if isinstance(received_hops, str):
         hops_iter = [received_hops]
-    elif isinstance(received_hops, (list, tuple, set)):
+    elif isinstance(received_hops, list | tuple | set):
         hops_iter = received_hops
     else:
         hops_iter = []
@@ -266,10 +260,7 @@ def analyze_addresses_with_polars(
 
     if address_chunks:
         # Concatenate all address chunks into a single DataFrame
-        if len(address_chunks) == 1:
-            addresses_df = address_chunks[0]
-        else:
-            addresses_df = pl.concat(address_chunks, how="vertical")
+        addresses_df = address_chunks[0] if len(address_chunks) == 1 else pl.concat(address_chunks, how="vertical")
 
         # Group by address and aggregate
         addresses_agg = (
@@ -299,10 +290,7 @@ def analyze_addresses_with_polars(
 
     if host_chunks:
         # Concatenate all host chunks into a single DataFrame
-        if len(host_chunks) == 1:
-            hosts_df = host_chunks[0]
-        else:
-            hosts_df = pl.concat(host_chunks, how="vertical")
+        hosts_df = host_chunks[0] if len(host_chunks) == 1 else pl.concat(host_chunks, how="vertical")
 
         # Group by host and count
         hosts_agg = (

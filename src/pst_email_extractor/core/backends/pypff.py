@@ -4,19 +4,21 @@ libpff-backed PST backend.
 
 from __future__ import annotations
 
+import contextlib
 import importlib
 import logging
 import os
 from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from pst_email_extractor.core.attachment_processor import AttachmentContentExtractor, AttachmentContentOptions
+from pst_email_extractor.core.models import AttachmentInfo, FolderInfo, MessageHandle
+from pst_email_extractor.core.security import CHUNK_SIZE, MAX_ATTACHMENT_SIZE
+
 from .base import PstBackend
-from ..models import FolderInfo, MessageHandle, AttachmentInfo
-from ..attachment_processor import AttachmentContentExtractor, AttachmentContentOptions
-from ..security import MAX_ATTACHMENT_SIZE, CHUNK_SIZE
 
 logger = logging.getLogger(__name__)
 
@@ -69,66 +71,93 @@ class PypffBackend(PstBackend):
         if self._path is None:
             raise RuntimeError("PST backend not opened before iterating messages")
         parser = self._import_parser()
-        
-        # If attachment_content_options is provided, use iter_folder_messages on all folders
+
         if attachment_content_options:
             folders = self.list_folders()
             folders_with_msgs = [f for f in folders if f.total_count > 0]
-            
+
             if parallel and len(folders_with_msgs) > 1:
-                # Parallel processing for multiple folders using ThreadPoolExecutor
-                # Threads work well here since pypff I/O is often blocking
                 max_workers = min(os.cpu_count() or 2, len(folders_with_msgs), 4)
-                logger.info(f"Processing {len(folders_with_msgs)} folders with {max_workers} threads")
-                
-                yield from self._process_folders_parallel(
+                logger.info("Processing %s folders with %s threads", len(folders_with_msgs), max_workers)
+                generator = self._process_folders_parallel(
                     folders_with_msgs,
                     attachment_content_options,
                     progress_callback,
-                    max_workers
+                    max_workers,
+                    attachments_dir,
                 )
             else:
-                # Sequential processing for single folder or when parallel disabled
-                yield from self._process_folders_sequential(
+                generator = self._process_folders_sequential(
                     folders_with_msgs,
                     attachment_content_options,
-                    progress_callback
+                    progress_callback,
+                    attachments_dir,
                 )
+
+            seen_hashes: set[str] = set()
+            duplicates = 0
+
+            for email in generator:
+                if deduplicate:
+                    key = self._dedup_key(email)
+                    if key and key in seen_hashes:
+                        duplicates += 1
+                        continue
+                    if key:
+                        seen_hashes.add(key)
+                yield email
+
+            if deduplicate and duplicates:
+                logger.info("Skipped %s duplicate emails during attachment content extraction", duplicates)
         else:
-            # Standard iteration without attachment content extraction
-            yield from parser.iter_emails(
+            # For non-attachment processing, apply deduplication here
+            seen_hashes: set[str] = set()
+            duplicates = 0
+
+            for email in parser.iter_emails(
                 str(self._path),
                 progress_callback=progress_callback,
-                deduplicate=deduplicate,
+                deduplicate=False,  # Handle deduplication ourselves
                 attachments_dir=str(attachments_dir) if attachments_dir else None,
-            )
-    
+            ):
+                if deduplicate:
+                    key = self._dedup_key(email)
+                    if key and key in seen_hashes:
+                        duplicates += 1
+                        continue
+                    if key:
+                        seen_hashes.add(key)
+                yield email
+
+            if deduplicate and duplicates:
+                logger.info("Skipped %s duplicate emails", duplicates)
+
     def _process_folders_sequential(
         self,
         folders: list[FolderInfo],
         options: AttachmentContentOptions,
         progress_callback,
+        attachments_dir: Path | None,
     ) -> Iterable[dict]:
         """Process folders sequentially (original behavior)."""
         total_processed = 0
         for folder_info in folders:
             try:
-                for email_dict, handle in self.iter_folder_messages(
+                for email_dict, _handle in self.iter_folder_messages(
                     folder_info.path,
                     start=0,
                     limit=folder_info.total_count,
                     attachment_content_options=options,
-                    progress_callback=progress_callback
+                    progress_callback=progress_callback,
+                    attachments_dir=attachments_dir,
                 ):
                     total_processed += 1
                     if progress_callback and total_processed % 10 == 0:
                         try:
                             progress_callback(total_processed, 0, "Processing attachments")
                         except Exception:
-                            try:
+                            with contextlib.suppress(Exception):
                                 progress_callback(total_processed)
-                            except Exception:
-                                pass
                     yield email_dict
             except Exception as e:
                 logger.warning(f"Error processing folder {folder_info.path}: {e}")
@@ -140,6 +169,7 @@ class PypffBackend(PstBackend):
         options: AttachmentContentOptions,
         progress_callback,
         max_workers: int,
+        attachments_dir: Path | None,
     ) -> Iterable[dict]:
         """Process folders in parallel using ThreadPoolExecutor with bounded batches."""
         total_processed = 0
@@ -154,7 +184,8 @@ class PypffBackend(PstBackend):
                     start=0,
                     limit=folder_info.total_count,
                     attachment_content_options=options,
-                    progress_callback=None  # Avoid callback contention in threads
+                    progress_callback=None,
+                    attachments_dir=attachments_dir,
                 ):
                     batch.append(email_dict)
                     if len(batch) >= BATCH_SIZE:
@@ -193,10 +224,8 @@ class PypffBackend(PstBackend):
                             for email_dict in batch:
                                 total_processed += 1
                                 if progress_callback and total_processed % 10 == 0:
-                                    try:
+                                    with contextlib.suppress(Exception):
                                         progress_callback(total_processed, 0, f"Processed {total_processed} emails")
-                                    except Exception:
-                                        pass
                                 yield email_dict
                     except Exception as e:
                         logger.error(f"Failed to retrieve results for folder {folder.path}: {e}")
@@ -206,26 +235,49 @@ class PypffBackend(PstBackend):
                     import time
                     time.sleep(0.01)
 
+    @staticmethod
+    def _dedup_key(email: dict) -> str | None:
+        """Return a stable key for deduplication when available."""
+        key = email.get("Email_ID")
+        if isinstance(key, str) and key:
+            return key
+        if key:
+            return str(key)
+
+        fallback = email.get("Message_ID")
+        if isinstance(fallback, str) and fallback:
+            return fallback
+        if fallback:
+            return str(fallback)
+
+        subject = email.get("Subject")
+        sender = email.get("Sender_Email") or email.get("From")
+        timestamp = email.get("Date_Received") or email.get("Date_Sent")
+        if subject or sender or timestamp:
+            parts = [subject or "", sender or "", timestamp or ""]
+            return "|".join(str(part) for part in parts)
+        return None
+
     def analyze_addresses(
         self,
         *,
         deduplicate: bool = False,
-        progress_callback=None,
+        _progress_callback=None,
     ) -> dict:
         if self._path is None:
             raise RuntimeError("PST backend not opened before analyzing addresses")
 
         # Use optimized analysis with Polars when possible
-        from ..analysis import analyze_addresses
+        from pst_email_extractor.core.analysis import analyze_addresses
 
         parser = self._import_parser()
         email_iter = parser.iter_emails(
             str(self._path),
-            progress_callback=progress_callback,
+            progress_callback=_progress_callback,
             deduplicate=deduplicate,
         )
 
-        return analyze_addresses(email_iter, progress_callback=progress_callback)
+        return analyze_addresses(email_iter, progress_callback=_progress_callback)
 
     # --- Folder tree and scoped iteration ---
     def _open_pst(self):
@@ -234,8 +286,8 @@ class PypffBackend(PstBackend):
         parser = self._import_parser()
         try:
             pypff = parser.pypff  # type: ignore[attr-defined]
-        except AttributeError:  # pragma: no cover
-            raise DependencyError("pypff is not available.")
+        except AttributeError as e:  # pragma: no cover
+            raise DependencyError("pypff is not available.") from e
         if not parser.is_pypff_available():
             raise DependencyError("pypff is not available.")
         pst_file = pypff.file()
@@ -352,8 +404,9 @@ class PypffBackend(PstBackend):
         *,
         start: int = 0,
         limit: int = 100,
-        progress_callback=None,
+        __progress_callback=None,
         attachment_content_options: AttachmentContentOptions | None = None,
+        attachments_dir: Path | None = None,
     ) -> Iterable[tuple[dict, MessageHandle]]:
         if limit <= 0:
             return iter(())
@@ -374,7 +427,7 @@ class PypffBackend(PstBackend):
                     if yielded >= limit:
                         break
                     try:
-                        email = parser._parse_message(m, idx, None)  # type: ignore[attr-defined]
+                        email = parser._parse_message(m, idx, attachments_dir)  # type: ignore[attr-defined]
                     except Exception:
                         email = None
                     if email:
@@ -399,7 +452,7 @@ class PypffBackend(PstBackend):
                     except Exception:
                         continue
                     try:
-                        email = parser._parse_message(m, i, None)  # type: ignore[attr-defined]
+                        email = parser._parse_message(m, i, attachments_dir)  # type: ignore[attr-defined]
                     except Exception:
                         email = None
                     if email:
@@ -415,8 +468,14 @@ class PypffBackend(PstBackend):
             except Exception as exc:
                 logger.debug("Failed to close PST file: %s", exc)
 
-    def _process_attachment_content(self, email: dict, handle: MessageHandle,
-                                   options: AttachmentContentOptions, message_obj: Any, parser: ModuleType) -> dict:
+    def _process_attachment_content(
+        self,
+        email: dict,
+        handle: MessageHandle,
+        options: AttachmentContentOptions,
+        message_obj: Any,
+        _parser: ModuleType,
+    ) -> dict:
         """Process attachment content for a message and enrich the email record."""
         try:
             # Get attachment count
@@ -481,7 +540,7 @@ class PypffBackend(PstBackend):
             enriched_email = dict(email)
             enriched_email["Attachment_Metadata"] = attachment_metadata
             enriched_email["Attachment_Content"] = "\n\n".join(all_extracted_text)
-            enriched_email["Attachment_Types"] = list(set(meta["mime_type"] for meta in attachment_metadata if meta.get("mime_type")))
+            enriched_email["Attachment_Types"] = list({meta["mime_type"] for meta in attachment_metadata if meta.get("mime_type")})
 
             return enriched_email
 
@@ -575,7 +634,7 @@ class PypffBackend(PstBackend):
 
             data = b""
             try:
-                if hasattr(att, "read_buffer") and isinstance(candidate_size, (int, float)) and candidate_size > 0:
+                if hasattr(att, "read_buffer") and isinstance(candidate_size, int | float) and candidate_size > 0:
                     if candidate_size > MAX_ATTACHMENT_SIZE or candidate_size < 0:
                         return b""
                     bytes_read = 0
@@ -596,14 +655,12 @@ class PypffBackend(PstBackend):
                 except Exception:
                     data = b""
 
-            if isinstance(data, (bytes, bytearray)) and len(data) > MAX_ATTACHMENT_SIZE:
+            if isinstance(data, bytes | bytearray) and len(data) > MAX_ATTACHMENT_SIZE:
                 return b""
             return bytes(data)
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 pst.close()
-            except Exception:
-                pass
 
 
 def is_available() -> bool:

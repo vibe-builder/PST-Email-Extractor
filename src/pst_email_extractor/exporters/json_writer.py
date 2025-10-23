@@ -11,8 +11,9 @@ from __future__ import annotations
 import gzip
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .base import AIPipelineMixin, EmailExporter, _normalise_output_path
 

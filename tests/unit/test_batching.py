@@ -4,11 +4,9 @@ Unit tests for format-specific batching functionality.
 
 from __future__ import annotations
 
-from unittest.mock import Mock, patch
-import pytest
+from unittest.mock import Mock
 
-from pst_email_extractor.core.extraction import perform_extraction
-from pst_email_extractor.core.models import ExtractionConfig
+import pytest
 
 
 def test_format_batch_sizes():
@@ -48,7 +46,7 @@ def test_batch_size_calculation():
     assert eml_mbox_batch == FORMAT_BATCH_SIZES['eml']  # eml has smallest
 
 
-def test_batching_buffer_flushing(tmp_path):
+def test_batching_buffer_flushing():
     """Test that batching buffers emails and flushes at appropriate intervals."""
     # This would require mocking the entire extraction pipeline
     # For now, test the conceptual behavior

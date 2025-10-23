@@ -35,7 +35,6 @@ def create_spec_file():
     # Determine platform-specific settings
     is_windows = platform.system() == "Windows"
     is_macos = platform.system() == "Darwin"
-    is_linux = platform.system() == "Linux"
 
     # Platform-specific executable name
     exe_name = 'PST_Email_Extractor'

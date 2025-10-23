@@ -1,0 +1,111 @@
+# Common Abbreviations and Acronyms Dictionary
+# Format: abbreviation frequency
+# Higher frequency = more common usage
+
+# Email abbreviations
+bcc 50000
+cc 45000
+fwd 40000
+re 35000
+att 30000
+eom 25000
+fyi 20000
+asap 18000
+tbd 16000
+tba 14000
+n/a 12000
+aka 10000
+etc 9000
+ie 8000
+eg 7000
+vs 6000
+wrt 5000
+afaik 4500
+btw 4000
+imo 3500
+imho 3000
+brb 2500
+ttyl 2000
+omg 1500
+lol 1000
+smh 500
+
+# Business abbreviations
+corp 40000
+inc 38000
+ltd 36000
+co 34000
+dept 32000
+mgr 30000
+sr 28000
+jr 26000
+dr 24000
+mr 22000
+mrs 20000
+ms 18000
+phd 16000
+ceo 14000
+cfo 12000
+cto 10000
+vp 9000
+dir 8000
+mgr 7000
+coord 6000
+spec 5000
+rep 4000
+acct 3000
+admin 2000
+
+# Technical abbreviations
+api 30000
+url 28000
+ip 26000
+dns 24000
+vpn 22000
+ssl 20000
+tls 18000
+http 16000
+https 14000
+ftp 12000
+ssh 10000
+tcp 9000
+udp 8000
+ipv4 7000
+ipv6 6000
+lan 5000
+wan 4000
+wifi 3000
+usb 2500
+hdmi 2000
+cpu 1800
+gpu 1600
+ram 1400
+rom 1200
+ssd 1000
+hdd 800
+bios 600
+os 500
+
+# Common abbreviations
+id 45000
+ok 40000
+no 35000
+yes 30000
+hi 25000
+bye 20000
+am 18000
+pm 16000
+min 14000
+sec 12000
+hr 10000
+hrs 9000
+wk 8000
+wks 7000
+mo 6000
+mos 5000
+yr 4000
+yrs 3000
+kb 2500
+mb 2000
+gb 1500
+tb 1000
