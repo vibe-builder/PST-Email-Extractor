@@ -496,7 +496,7 @@ class PSTEmailExtractorGUI:
             if icon_path.exists():
                 self.root.iconbitmap(str(icon_path))
             else:
-            logger.debug(f"Window icon not found at: {icon_path}")
+                logger.debug(f"Window icon not found at: {icon_path}")
         except Exception as e:
             logger.debug(f"Could not set window icon/attributes: {e}")
 
