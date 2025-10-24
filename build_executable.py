@@ -46,6 +46,9 @@ def create_spec_file():
     # Platform-specific data paths
     data_sep = '\\' if is_windows else '/'
     data_paths = [
+        (f'src{data_sep}pst_email_extractor{data_sep}ai{data_sep}data', 'pst_email_extractor/ai/data'),
+        (f'src{data_sep}pst_email_extractor{data_sep}ai{data_sep}lib', 'pst_email_extractor/ai/lib'),
+        (f'src{data_sep}pst_email_extractor{data_sep}ai{data_sep}model_dir', 'pst_email_extractor/ai/model_dir'),
         (f'src{data_sep}pst_email_extractor', 'pst_email_extractor'),
     ]
 
@@ -64,15 +67,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas={data_paths},
-    # Ensure PySide6 modules are bundled even when imported lazily by Qt.
+    # Hidden imports required by runtime (tkinter is discovered from stdlib)
     hiddenimports=[
         'pypff',
-        'PySide6',
-        'PySide6.QtCore',
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-        'PySide6.QtWebEngineWidgets',  # For HTML viewing
-        'shiboken6',
         'polars',  # Memory-efficient DataFrame library
         'pst_email_extractor',
         'pst_email_extractor.cli.app',
@@ -80,13 +77,15 @@ a = Analysis(
         'pst_email_extractor.core.models',
         'pst_email_extractor.core.backends.pypff',
         'pst_email_extractor.exporters',
+        'customtkinter',
     ],
     hookspath=[],
     hooksconfig={{}},
     runtime_hooks=[],
     excludes=[
-        'tkinter',  # Exclude unused GUI frameworks
         'matplotlib',  # Not needed for this app
+        'PySide6',
+        'shiboken6',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,

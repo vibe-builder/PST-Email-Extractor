@@ -1,0 +1,3 @@
+[33mee2acb4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m Fix CI test failures: CLI flag format, GUI display checks, and PyPFF availability
+[33m211fd4a[m[33m ([m[1;31morigin/master[m[33m)[m Fix pytest fixture parameter names and add noqa comments for intentionally unused parameters
+[33m21e6493[m Fix all ruff linting issues and update CI configuration

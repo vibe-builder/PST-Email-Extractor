@@ -60,26 +60,26 @@ pip install -e ".[perf,attachments,ai]"
 
 **Basic extraction:**
 ```bash
-python launch.py extract --pst file.pst --output ./exports --format json csv
+pst-email-extractor extract --pst file.pst --output ./exports --format json --format csv
 ```
 
 **With performance optimizations:**
 ```bash
 # Enable compression to save 50-70% disk space
-python launch.py extract --pst file.pst --output ./exports --json --compress
+pst-email-extractor extract --pst file.pst --output ./exports --json --compress
 
 # Extract attachment content with OCR
-python launch.py extract --pst file.pst --output ./exports --json \
-  --extract-attachment-content --enable-ocr
+pst-email-extractor extract --pst file.pst --output ./exports --json \
+  --extract-attachment-content --attachment-ocr
 
 # All features enabled
-python launch.py extract --pst file.pst --output ./exports --json --csv \
+pst-email-extractor extract --pst file.pst --output ./exports --json --csv \
   --compress --extract-attachment-content --ai-sanitize
 ```
 
 ### GUI
 ```bash
-python launch.py gui
+pst-email-extractor-gui
 ```
 
 ### Performance Tuning
@@ -95,8 +95,18 @@ For detailed performance optimization guide, see **[PERFORMANCE.md](PERFORMANCE.
 
 ## Requirements
 
-- Python 3.11-3.12
-- libpff (PST parsing library)
+- Python 3.11
+- libpff (PST parsing bindings via `libpff-python-ratom==20220304`)
+
+### Installing libpff bindings (Windows/macOS/Linux)
+
+The project depends on `libpff-python-ratom==20220304`, which supports Python 3.11. Install using:
+
+```bash
+pip install -e .
+```
+
+If platform toolchain issues arise, consult the `libpff` project docs or use prebuilt wheels from trusted sources.
 
 ## Progress callbacks
 

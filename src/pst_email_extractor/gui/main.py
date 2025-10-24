@@ -491,12 +491,12 @@ class PSTEmailExtractorGUI:
                 self.root.attributes('-alpha', 1.0)
 
             # Load icon from project root next to 'PST Email Extractor'
-            project_root = Path(__file__).resolve().parents[3]
+            project_root = Path(__file__).expanduser().resolve().parents[3]
             icon_path = project_root / "logo.ico"
             if icon_path.exists():
                 self.root.iconbitmap(str(icon_path))
             else:
-                logger.debug(f"Window icon not found at: {icon_path}")
+            logger.debug(f"Window icon not found at: {icon_path}")
         except Exception as e:
             logger.debug(f"Could not set window icon/attributes: {e}")
 
