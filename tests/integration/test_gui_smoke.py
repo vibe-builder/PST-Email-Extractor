@@ -12,6 +12,14 @@ class TestGUISmoke:
         """Test that SettingsDialog can be created and basic UI elements work."""
         pytest.importorskip("customtkinter", reason="CustomTkinter not available")
 
+        # Skip in headless environments (CI)
+        try:
+            import tkinter as tk
+            root = tk.Tk()
+            root.destroy()
+        except Exception:
+            pytest.skip("Display server not available")
+
         try:
             import customtkinter as ctk
 
@@ -55,6 +63,14 @@ class TestGUISmoke:
         """Test that AddressAnalysisDialog can be created."""
         pytest.importorskip("customtkinter", reason="CustomTkinter not available")
         pytest.importorskip("tkinter", reason="Tkinter not available")
+
+        # Skip in headless environments (CI)
+        try:
+            import tkinter as tk
+            root = tk.Tk()
+            root.destroy()
+        except Exception:
+            pytest.skip("Display server not available")
 
         try:
             from unittest.mock import Mock

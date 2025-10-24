@@ -7,6 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from pst_email_extractor.pst_parser import is_pypff_available
+
 
 class TestGUISmoke:
     """Smoke tests for GUI functionality."""
@@ -75,6 +77,7 @@ class TestGUISmoke:
             assert emails[0].email_id == "test_001"
             assert emails[0].subject == "Test Subject"
 
+    @pytest.mark.skipif(not is_pypff_available(), reason="PyPFF library not available")
     def test_pst_extractor_get_total_email_count(self):
         """Test PSTExtractor.get_total_email_count."""
         from pst_email_extractor.core.models import FolderInfo

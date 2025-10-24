@@ -201,7 +201,7 @@ def extract(
     ),
     attachment_ocr: bool = typer.Option(
         True,
-        "--enable-ocr/--disable-ocr",
+        "--attachment-ocr/--no-attachment-ocr",
         help="Enable OCR for images and scanned documents",
     ),
     ocr_languages: str = typer.Option(
