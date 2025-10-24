@@ -93,7 +93,7 @@ class TestExtractionPipeline:
 
         return mock_backend
 
-    def test_basic_extraction_json(self, _mock_pst_backend):
+    def test_basic_extraction_json(self, mock_pst_backend):  # noqa: ARG002
         """Test basic extraction to JSON format."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
@@ -118,7 +118,7 @@ class TestExtractionPipeline:
             assert "test_002" in content
             assert result.email_count == 2
 
-    def test_basic_extraction_csv(self, _mock_pst_backend):
+    def test_basic_extraction_csv(self, mock_pst_backend):  # noqa: ARG002
         """Test basic extraction to CSV format."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
@@ -140,7 +140,7 @@ class TestExtractionPipeline:
             assert "Email_ID" in content
             assert "test_001" in content
 
-    def test_address_analysis_mode(self, _mock_pst_backend):
+    def test_address_analysis_mode(self, mock_pst_backend):  # noqa: ARG002
         """Test address analysis mode."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
