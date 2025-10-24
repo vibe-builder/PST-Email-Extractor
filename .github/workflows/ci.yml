@@ -14,9 +14,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        run: pip install uv
+        run: pip install uv>=0.9.0
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --extra dev
       - name: Lint
         run: uv run ruff check
       - name: Type check
