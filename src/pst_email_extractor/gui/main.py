@@ -22,9 +22,7 @@ Architecture:
 
 import builtins
 import contextlib
-import io
 import logging
-import math
 import os
 import threading
 import tkinter as tk

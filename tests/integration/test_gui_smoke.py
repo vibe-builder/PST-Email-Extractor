@@ -13,7 +13,6 @@ class TestGUISmoke:
         pytest.importorskip("customtkinter", reason="CustomTkinter not available")
 
         try:
-            import tkinter as tk
             import customtkinter as ctk
 
             # Create a minimal root window (required for CTk components)
@@ -58,9 +57,9 @@ class TestGUISmoke:
         pytest.importorskip("tkinter", reason="Tkinter not available")
 
         try:
-            import tkinter as tk
-            import customtkinter as ctk
             from unittest.mock import Mock
+
+            import customtkinter as ctk
 
             # Create a minimal root window
             root = ctk.CTk()

@@ -44,9 +44,8 @@ class TestExtractionPipeline:
             }
         ]
 
-        def mock_iter_messages(**kwargs):
-            for email in sample_emails:
-                yield email
+        def mock_iter_messages(**_kwargs):
+            yield from sample_emails
 
         mock_backend.iter_messages = mock_iter_messages
 
@@ -81,7 +80,7 @@ class TestExtractionPipeline:
                 }
             ]
 
-            def mock_iter_emails(*args, **kwargs):
+            def mock_iter_emails(*_args, **_kwargs):
                 return iter(sample_emails)
 
             parser_mock.iter_emails = mock_iter_emails
@@ -89,12 +88,12 @@ class TestExtractionPipeline:
 
         monkeypatch.setattr(
             "pst_email_extractor.core.backends.pypff.PypffBackend._import_parser",
-            lambda self: mock_import_parser()
+            lambda _self: mock_import_parser()
         )
 
         return mock_backend
 
-    def test_basic_extraction_json(self, mock_pst_backend):
+    def test_basic_extraction_json(self, _mock_pst_backend):
         """Test basic extraction to JSON format."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
@@ -119,7 +118,7 @@ class TestExtractionPipeline:
             assert "test_002" in content
             assert result.email_count == 2
 
-    def test_basic_extraction_csv(self, mock_pst_backend):
+    def test_basic_extraction_csv(self, _mock_pst_backend):
         """Test basic extraction to CSV format."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
@@ -141,7 +140,7 @@ class TestExtractionPipeline:
             assert "Email_ID" in content
             assert "test_001" in content
 
-    def test_address_analysis_mode(self, mock_pst_backend):
+    def test_address_analysis_mode(self, _mock_pst_backend):
         """Test address analysis mode."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExtractionConfig(
@@ -190,7 +189,7 @@ class TestExtractionPipeline:
                 }
             ]
 
-            def mock_iter_emails(*args, **kwargs):
+            def mock_iter_emails(*_args, **_kwargs):
                 return iter(duplicate_emails)
 
             parser_mock.iter_emails = mock_iter_emails
@@ -198,7 +197,7 @@ class TestExtractionPipeline:
 
         monkeypatch.setattr(
             "pst_email_extractor.core.backends.pypff.PypffBackend._import_parser",
-            lambda self: mock_import_parser_duplicate()
+            lambda _self: mock_import_parser_duplicate()
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:

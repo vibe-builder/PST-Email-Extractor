@@ -1,7 +1,5 @@
 """Integration tests for AI processing pipeline."""
 
-import pytest
-
 from pst_email_extractor.ai.pipeline import create_text_pipeline
 
 

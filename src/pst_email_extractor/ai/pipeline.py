@@ -286,7 +286,7 @@ class _SymSpellCorrector:
                 "邮件": 50000, "附件": 45000, "主题": 40000, "收件箱": 35000,
                 "已发送": 32000, "收件人": 30000, "发件人": 28000, "抄送": 25000,
                 "密送": 24000, "转发": 23000, "回复": 22000, "消息": 20000,
-                "邮件": 18000, "已收到": 17000, "日期": 16000, "时间": 15000,
+                "已收到": 17000, "日期": 16000, "时间": 15000,
                 "会议": 14000, "日历": 13000, "邀请": 12000, "通知": 11000,
                 "未读": 10000, "已读": 9500, "存档": 9000, "草稿": 8500,
                 "垃圾邮件": 8000, "文件夹": 7000, "签名": 5000, "优先级": 4500,
@@ -663,7 +663,7 @@ def validate_dictionary_file(file_path: str) -> tuple[bool, str]:
         return False, f"Dictionary file does not exist: {file_path}"
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             lines = f.readlines()
 
         if not lines:
@@ -672,7 +672,7 @@ def validate_dictionary_file(file_path: str) -> tuple[bool, str]:
         valid_lines = 0
         invalid_lines = 0
 
-        for i, line in enumerate(lines[:1000]):  # Check first 1000 lines for validation
+        for _i, line in enumerate(lines[:1000]):  # Check first 1000 lines for validation
             line = line.strip()
             if not line or line.startswith('#'):  # Skip comments and empty lines
                 continue
@@ -723,7 +723,7 @@ def merge_dictionaries(*dict_paths: str, output_path: str | None = None) -> dict
             continue
 
         try:
-            with open(dict_path, 'r', encoding='utf-8') as f:
+            with open(dict_path, encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     if not line or line.startswith('#'):
